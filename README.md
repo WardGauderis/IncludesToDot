@@ -2,6 +2,8 @@
 
 Visualize the include structure of your C++ project on Linux using Graphviz DOT language.
 
+Dependencies: the Graphviz package
+
 Usage: -h for headers only
 
 Node color:   
