@@ -1,0 +1,26 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/ward/Documents/GitHub/IncludesToDot/Scanner.h
+set
+-
+map
+-
+filesystem
+-
+
+/home/ward/Documents/GitHub/IncludesToDot/main.cpp
+Scanner.h
+/home/ward/Documents/GitHub/IncludesToDot/Scanner.h
+iostream
+-
+algorithm
+-
+vector
+-
+

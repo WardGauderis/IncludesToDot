@@ -28,7 +28,7 @@ void Scanner::scanFile(const path &path) {
 
     if (hExtensions.find(path.extension()) != hExtensions.end()) {
         file.implementation = false;
-    } else if (!header && cExtensions.find(path.extension()) != cExtensions.end()) {    //headers only
+    } else if (cExtensions.find(path.extension()) != cExtensions.end()) {    //headers only
         file.implementation = true;
     } else return;
 
@@ -93,6 +93,9 @@ void Scanner::print() {
              "\tedge [ color=\"#505050\", penwidt=2.5 ];\n\n";
 
     for (const auto &file: files) {
+        if (header && !file.second.implementation) continue;
+        if (implementation && file.second.implementation) continue;
+
         std::string color;
         if (file.second.implementation) {
             color = "#3BB33B";
@@ -102,6 +105,9 @@ void Scanner::print() {
         oFile << "\t\"" << file.first << "\" [ fillcolor=\"" << color << "\" ];\n\n";
 
         for (const auto &include: file.second.includes) {
+            if (header && !include.second) continue;
+            if (library && include.second) continue;
+
             if (include.second) color = "#505050";
             else if (files.find(include.first) != files.end()) {
                 if (files[include.first].implementation) color = "#3BB33B";
@@ -116,7 +122,11 @@ void Scanner::print() {
 
     oFile << "\n\t{ rank=same; ";
     for (const auto &file: files) {
+        if (header && !file.second.implementation) continue;
+        if (implementation && file.second.implementation) continue;
+
         for (const auto &include: file.second.includes) {
+            if (library && include.second) continue;
             if (!include.second) continue;
             oFile << "\"" << include.first << "\" ";
         }
@@ -127,12 +137,14 @@ void Scanner::print() {
 
     oFile.close();
     std::string command =
-            "(dot -Tpng " + dotName + " -o " + pngName + " && xdg-open " + pngName + ") &";
+            "(dot -Tpng " + dotName + " -o " + pngName + " && xdg-open " + pngName + ") >/dev/null 2>&1 &";
     system(command.c_str());
 }
 
-Scanner::Scanner(bool h) {
+Scanner::Scanner(bool h, bool c, bool l) {
     (*this).header = h;
+    (*this).implementation = c;
+    (*this).library = l;
     scanFolder(current_path());
     print();
 }

@@ -27,6 +27,8 @@ class Scanner {
     std::map<std::string, File> files;
 
     bool header;
+    bool implementation;
+    bool library;
 
     void scanFolder(const path &path);
 
@@ -35,7 +37,7 @@ class Scanner {
     void print();
 
 public:
-    explicit Scanner(bool h);
+    explicit Scanner(bool h, bool c, bool l);
 };
 
 

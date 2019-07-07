@@ -1,0 +1,3 @@
+/home/ward/Documents/GitHub/IncludesToDot/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/home/ward/Documents/GitHub/IncludesToDot/cmake-build-debug/CMakeFiles/includesToDot.dir
+/home/ward/Documents/GitHub/IncludesToDot/cmake-build-debug/CMakeFiles/edit_cache.dir

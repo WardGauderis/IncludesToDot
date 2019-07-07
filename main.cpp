@@ -7,19 +7,32 @@
 // @description :
 //============================================================================
 #include "Scanner.h"
-#include <vector>
 #include <iostream>
+#include <algorithm>
+#include <vector>
 
 int main(int argc, char *argv[]) {
     std::vector<std::string> arguments(argv + 1, argv + argc);
 
-    bool headers = argc > 1 && arguments[0] == "-h";
+    char c = 'h';
+    auto find = [&c](const std::string &arg) { return arg.find(c) != std::string::npos; };
+    std::cout << find(arguments[0]) << arguments[0] << std::endl;
+
+    bool header = std::find_if(arguments.begin(), arguments.end(), find) != arguments.end();
+
+    c = 'c';
+    bool implementation = std::find_if(arguments.begin(), arguments.end(), find) != arguments.end();
+
+    c = 'l';
+    bool library = std::find_if(arguments.begin(), arguments.end(), find) != arguments.end();
 
     std::cout << "IncludesToDot\n"
                  "By Ward Gauderis\n"
                  "Visualize the include structure of your C++ project on Linux using Graphviz DOT language.\n\n"
                  "Dependencies: the Graphviz package\n"
-                 "Usage: -h for headers only\n\n"
+                 "Usage:        h - hide headers\n"
+                 "              c - hide implementation files\n"
+                 "              l - hide libraries\n\n"
                  "Node color:   grey - library/missing file\n"
                  "              green - implementation file\n"
                  "              red - header file\n"
@@ -28,7 +41,7 @@ int main(int argc, char *argv[]) {
                  "              red - include header file\n"
                  "              orange - include missing file\n";
 
-    Scanner scanner(headers);
+    Scanner scanner(header, implementation, library);
 
     return 0;
 }
