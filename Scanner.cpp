@@ -54,7 +54,7 @@ void Scanner::scanFile(const path &path) {
                 continue;
         }
 
-        int end = line.find_first_of(std ? '>' : '"', 9);
+        long unsigned int end = line.find_first_of(std ? '>' : '"', 9);
         if (end == std::string::npos) continue;
 
         std::string included = line.substr(9, end - 9);
@@ -131,8 +131,8 @@ void Scanner::print() {
     system(command.c_str());
 }
 
-Scanner::Scanner(bool header) {
-    (*this).header = header;
+Scanner::Scanner(bool h) {
+    (*this).header = h;
     scanFolder(current_path());
     print();
 }

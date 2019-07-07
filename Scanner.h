@@ -35,7 +35,7 @@ class Scanner {
     void print();
 
 public:
-    explicit Scanner(bool header);
+    explicit Scanner(bool h);
 };
 
 
