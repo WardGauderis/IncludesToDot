@@ -16,7 +16,6 @@ int main(int argc, char *argv[]) {
 
     char c = 'h';
     auto find = [&c](const std::string &arg) { return arg.find(c) != std::string::npos; };
-    std::cout << find(arguments[0]) << arguments[0] << std::endl;
 
     bool header = std::find_if(arguments.begin(), arguments.end(), find) != arguments.end();
 
