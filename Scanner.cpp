@@ -15,7 +15,7 @@ void Scanner::scanFolder(const path &path) {
     directory_iterator iterator(path);
     for (const auto &entry: iterator) {
         if (entry.is_directory()) {
-            if (entry.path().filename() == "cmake-build-debug") continue;
+            if (entry.path().filename() == "cmake-build-debug" || entry.path().filename() == "CMakeFiles") continue;
             scanFolder(entry.path());
         } else {    //files not included
             if (files.find(relative(entry)) == files.end()) scanFile(entry.path());
