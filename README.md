@@ -6,7 +6,10 @@ Visualize the include structure of your C++ project on Linux using Graphviz DOT 
 
 Dependencies: the Graphviz package
 
-Usage: -h for headers only
+Usage:        
+- h - hide headers
+- c - hide implementation files
+- l - hide libraries
 
 Node color:   
 - grey - library/missing file
