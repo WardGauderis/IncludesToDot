@@ -1,1 +1,0 @@
-/usr/bin/c++  -O3 -Wall -Wextra -Wshadow -Wnon-virtual-dtor -Wold-style-cast -Wunused -Woverloaded-virtual -Wpedantic -Wconversion -Wsign-conversion -Wnull-dereference -Wdouble-promotion -Wformat=2 -g   CMakeFiles/includesToDot.dir/Scanner.cpp.o CMakeFiles/includesToDot.dir/main.cpp.o  -o includesToDot 
