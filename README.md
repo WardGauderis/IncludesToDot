@@ -1,6 +1,6 @@
 # IncludesToDot
 
-Visualize the include structure of your C++ project on Linux.
+Visualize the include structure of your C++ project on Linux using Graphviz DOT language.
 
 Usage: -h for headers only
 
