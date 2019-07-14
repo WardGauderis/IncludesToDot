@@ -2,22 +2,23 @@
 
 By Ward Gauderis
 
-Visualize the include structure of your C++ project on Linux using Graphviz DOT language.
+Visualize the include structure of your C/C++ project on Linux using Graphviz DOT language.
 
 Dependencies: the Graphviz package
 
-Usage:        
-- h - hide headers
-- c - hide implementation files
-- l - hide libraries
+Usage: itd <path (optional)> -<options (optional)>
+- h - hide headers and their library/missing dependencies
+- c - hide implementation files and their library/missing dependencies
+- l - hide library dependencies
+- u - hide unknown/missing dependencies
+- o - show the optimized graph of your project's includes (using transitive reduction)
 
-Node color:   
-- grey - library/missing file
-- green - implementation file
-- red - header file
-              
-Edge color:
-- grey - include libraries
-- green - include implementation file (?)
-- red - include header file
-- orange - include missing file
+Examples:   
+- itd main.cpp -olu
+- itd myProject/src/ -lc
+            
+Graph color:
+- red - header file/include
+- green - implementation file/include
+- grey - library file/include
+- orange - unknown/missing file/include

@@ -9,36 +9,54 @@
 #ifndef TODOT_SCANNER_H
 #define TODOT_SCANNER_H
 
+#include <filesystem>
 #include <set>
 #include <map>
-#include <filesystem>
+#include <vector>
 
 using namespace std::filesystem;
 
+enum class Type {
+    U, H, C, L
+};
+
+std::ostream &operator<<(std::ostream &out, Type type);
+
 struct File {
-    std::set<std::pair<std::string, bool>> includes;
-    bool implementation;
+    const path absPath;
+    Type type;
+
+    File(path absPath, Type type);
 };
 
 class Scanner {
     const std::set<std::string> cExtensions = {".c", ".cpp", ".cc", ".C", ".cxx", ".c++"};
     const std::set<std::string> hExtensions = {".h", ".hpp", ".hh", ".H", ".hxx", ".h++"};
 
-    std::map<std::string, File> files;
+    std::map<path, size_t> check;
+    std::vector<File> files;
+    std::vector<std::vector<bool>> adjacencyMatrix;
 
-    bool header;
-    bool implementation;
-    bool library;
+    bool U;
+    bool H;
+    bool C;
+    bool L;
+    bool recursive;
+
+    path workingDir;
 
     void scanFolder(const path &path);
 
     void scanFile(const path &path);
 
-    void print();
+    bool print(Type type) const;
 
 public:
-    explicit Scanner(bool h, bool c, bool l);
-};
+    Scanner(bool u, bool h, bool c, bool l, bool r, const path &path);
 
+    void print() const;
+
+    void transitiveReduction();
+};
 
 #endif //TODOT_SCANNER_H

@@ -1,3 +1,5 @@
+#include <utility>
+
 //============================================================================
 // @name        : Scanner.cpp
 // @author      : Ward Gauderis
@@ -6,34 +8,89 @@
 // @copyright   : BA1 Informatica - Ward Gauderis - University of Antwerp
 // @description : 
 //============================================================================
+#include "Scanner.h"
+
 #include <fstream>
 #include <algorithm>
 #include <iostream>
-#include "Scanner.h"
+#include <array>
+
+std::ostream &operator<<(std::ostream &out, const Type type) {
+    std::string s;
+    switch (type) {
+        case Type::U:
+            s = "#FF9000";
+            break;
+        case Type::H:
+            s = "#E33B3B";
+            break;
+        case Type::C:
+            s = "#3BB33B";
+            break;
+        case Type::L:
+            s = "#505050";
+            break;
+    }
+    return out << s;
+}
+
+File::File(path p, Type t) : absPath(std::move(p)), type(t) {}
+
+Scanner::Scanner(bool u, bool h, bool c, bool l, bool r, const path &path) :
+        U(u), H(h), C(c), L(l), recursive(r) {
+    if (is_directory(path)) {
+        workingDir = path;
+        current_path(workingDir);
+        scanFolder(path);
+    } else {
+        workingDir = path.parent_path();
+        current_path(workingDir);
+        scanFile(path);
+    }
+}
 
 void Scanner::scanFolder(const path &path) {
-    directory_iterator iterator(path);
-    for (const auto &entry: iterator) {
+    for (const auto &entry: directory_iterator(path)) {
         if (entry.is_directory()) {
             if (entry.path().filename() == "cmake-build-debug" || entry.path().filename() == "CMakeFiles") continue;
             scanFolder(entry.path());
-        } else {    //files not included
-            if (files.find(relative(entry)) == files.end()) scanFile(entry.path());
+        } else {
+            scanFile(entry.path());
         }
     }
 }
 
 void Scanner::scanFile(const path &path) {
-    File file;
-
+    Type temp;
     if (hExtensions.find(path.extension()) != hExtensions.end()) {
-        file.implementation = false;
-    } else if (cExtensions.find(path.extension()) != cExtensions.end()) {    //headers only
-        file.implementation = true;
+        temp = Type::H;
+    } else if (cExtensions.find(path.extension()) != cExtensions.end()) {
+        temp = Type::C;
     } else return;
 
+    size_t index;
+    if (check.find(path) != check.end()) {
+        if (files[check[path]].type != Type::U) return;
+        else index = check[path];
+    } else {
+        index = files.size();
+        files.emplace_back(path, Type::U);
+        check[path] = index;
+
+        adjacencyMatrix.emplace_back(std::vector<bool>(index, false));
+        for (auto &i: adjacencyMatrix) {
+            i.emplace_back(false);
+        }
+    }
+
     std::ifstream iFile(path);
-    if (!iFile.good()) return;
+    if (!iFile.good()) {
+        return;
+    }
+
+    files[index].type = temp;
+
+    const std::string p = path.parent_path().string();  //if no string is used, a bad malloc occurs when assigning the current_path() for some reason
 
     std::string line;
     while (getline(iFile, line)) {
@@ -42,44 +99,85 @@ void Scanner::scanFile(const path &path) {
         if (line.size() < 8) continue;
         if (line.substr(0, 8) != "#include") continue;
 
-        bool std;
+        Type type;
         switch (line[8]) {
             case '"':
-                std = false;
+                type = Type::U;
                 break;
             case '<':
-                std = true;
+                type = Type::L;
                 break;
             default:
                 continue;
         }
 
-        long unsigned int end = line.find_first_of(std ? '>' : '"', 9);
+        long unsigned int end = line.find_first_of(type == Type::L ? '>' : '"', 9);
         if (end == std::string::npos) continue;
 
         std::string included = line.substr(9, end - 9);
-        if (std) {
-            file.includes.emplace(included, std);
-            continue;
+
+        class path abs;
+        if (type == Type::L) {
+            abs = absolute(included);
+        } else {
+            current_path(p);
+            try {
+                abs = canonical(included);
+            } catch (...) {
+                abs = absolute(included);
+            }
+            current_path(workingDir);
         }
 
-        auto home = current_path();
-        current_path(path.parent_path());
-        auto rel = relative(absolute(included), home);
-        current_path(home);
+        size_t index1;
+        if (check.find(abs) != check.end()) {
+            index1 = check[abs];
+        } else {
+            index1 = files.size();
+            files.emplace_back(abs, type);
+            check[abs] = index1;
 
-        file.includes.emplace(rel, std);
+            adjacencyMatrix.emplace_back(std::vector<bool>(index1, false));
+            for (auto &i: adjacencyMatrix) {
+                i.emplace_back(false);
+            }
+        }
+
+        adjacencyMatrix[index][index1] = true;
     }
 
     iFile.close();
-    files[relative(path)] = file;
 
-    for (const auto &include: file.includes) {  //files above working directory
-        if (files.find(include.first) == files.end()) scanFile(absolute(include.first));
+    if (!recursive) return;
+
+    for (size_t i = 0; i < files.size(); ++i) {
+        if (adjacencyMatrix[index][i]) {
+            scanFile(files[i].absPath);
+        }
     }
 }
 
-void Scanner::print() {
+void Scanner::print() const {
+    std::vector<bool> toPrint(files.size(), false);
+    for (size_t i = 0; i < files.size(); ++i) {
+        toPrint[i] = print(files[i].type);
+    }
+
+    if (!H || !C) {
+        for (size_t i = 0; i < files.size(); ++i) {
+            if (!toPrint[i]) continue;
+            if (files[i].type == Type::H || files[i].type == Type::C) continue;
+            toPrint[i] = false;
+            for (size_t j = 0; j < files.size(); ++j) {
+                if (!adjacencyMatrix[j][i]) continue;
+                if (toPrint[j]) {
+                    toPrint[i] = true;
+                    break;
+                }
+            }
+        }
+    }
+
     std::string dotName = temp_directory_path() / "includes.dot";
     std::string pngName = temp_directory_path() / "includes.png";
     std::ofstream oFile(dotName);
@@ -89,49 +187,38 @@ void Scanner::print() {
              "\tbgcolor=\"#252525\";\n"
              "\toutputorder=edgesfirst;\n"
              "\tresolution=250;\n\n"
-             "\tnode [ color=\"#252525\", fillcolor=\"#505050\", fontcolor=white, height=0.5, width=0.75, fontname=roboto, shape=box, style=filled ];\n"
-             "\tedge [ color=\"#505050\", penwidt=2.5 ];\n\n";
+             "\tnode [ color=\"#252525\", fontcolor=white, height=0.5, width=0.75, fontname=roboto, shape=box, style=filled ];\n"
+             "\tedge [ penwidt=2.5 ];\n\n";
 
-    for (const auto &file: files) {
-        if (header && !file.second.implementation) continue;
-        if (implementation && file.second.implementation) continue;
+    for (size_t i = 0; i < files.size(); ++i) {
+        if (!toPrint[i]) continue;
 
-        std::string color;
-        if (file.second.implementation) {
-            color = "#3BB33B";
-        } else {
-            color = "#E33B3B";
+        oFile << "\t\"" << i << "\" [ fillcolor=\"" << files[i].type << "\", label=" << relative(files[i].absPath)
+              << "];\n";
+    }
+
+    oFile << "\n";
+
+    for (size_t i = 0; i < files.size(); ++i) {
+        if (!toPrint[i]) continue;
+
+        for (size_t j = 0; j < files.size(); ++j) {
+            if (!toPrint[j]) continue;
+            if (!adjacencyMatrix[i][j]) continue;
+
+            oFile << "\t\"" << i << "\" -> \"" << j << "\" [ color =\"" << files[j].type
+                  << "\", dir=back ];\n";
         }
-        oFile << "\t\"" << file.first << "\" [ fillcolor=\"" << color << "\" ];\n\n";
-
-        for (const auto &include: file.second.includes) {
-            if (header && !include.second) continue;
-            if (library && include.second) continue;
-
-            if (include.second) color = "#505050";
-            else if (files.find(include.first) != files.end()) {
-                if (files[include.first].implementation) color = "#3BB33B";
-                else color = "#E33B3B";
-            } else color = "#FF9000";
-
-            oFile << "\t\"" << file.first << "\" -> \"" << include.first << "\" [ dir=back, color=\"" << color
-                  << "\" ] ;\n";
-        }
-        oFile << "\n";
     }
 
     oFile << "\n\t{ rank=same; ";
-    for (const auto &file: files) {
-        if (header && !file.second.implementation) continue;
-        if (implementation && file.second.implementation) continue;
-
-        for (const auto &include: file.second.includes) {
-            if (library && include.second) continue;
-            if (!include.second) continue;
-            oFile << "\"" << include.first << "\" ";
-        }
+    for (size_t i = 0; i < files.size(); ++i) {
+        if (files[i].type != Type::L) continue;
+        if (!toPrint[i]) continue;
+        oFile << "\"" << i << "\" ";
     }
     oFile << "};\n";
+
 
     oFile << "}";
 
@@ -141,11 +228,39 @@ void Scanner::print() {
     system(command.c_str());
 }
 
-Scanner::Scanner(bool h, bool c, bool l) {
-    (*this).header = h;
-    (*this).implementation = c;
-    (*this).library = l;
-    scanFolder(current_path());
-    print();
+bool Scanner::print(Type type) const {
+    switch (type) {
+        case Type::U:
+            return U;
+        case Type::H:
+            return H;
+        case Type::C:
+            return C;
+        case Type::L:
+            return L;
+    }
+    return true;
 }
 
+void Scanner::transitiveReduction() {
+    // Warshall's Algorithm for transitive closure
+    auto R1 = adjacencyMatrix;
+    for (size_t k = 0; k < files.size(); ++k) {
+        for (size_t i = 0; i < files.size(); ++i) {
+            for (size_t j = 0; j < files.size(); ++j) {
+                R1[i][j] = adjacencyMatrix[i][j] || (adjacencyMatrix[i][k] && adjacencyMatrix[k][j]);
+            }
+        }
+        std::swap(adjacencyMatrix, R1);
+    }
+    // Hsu's Algorithm for reflexive and transitive reduction
+    for (size_t i = 0; i < files.size(); ++i)
+        adjacencyMatrix[i][i] = false;
+
+    for (size_t j = 0; j < files.size(); ++j)
+        for (size_t i = 0; i < files.size(); ++i)
+            if (adjacencyMatrix[i][j])
+                for (size_t k = 0; k < files.size(); ++k)
+                    if (adjacencyMatrix[j][k])
+                        adjacencyMatrix[i][k] = false;
+}
