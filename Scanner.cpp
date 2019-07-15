@@ -146,8 +146,6 @@ void Scanner::scanFile(const path &path) {
         adjacencyMatrix[index][index1] = true;
     }
 
-    iFile.close();
-
     if (!recursive) return;
 
     for (size_t i = 0; i < files.size(); ++i) {
@@ -222,7 +220,6 @@ void Scanner::print() const {
 
     oFile << "}";
 
-    oFile.close();
     std::string command =
             "(dot -Tpng " + dotName + " -o " + pngName + " && xdg-open " + pngName + ") >/dev/null 2>&1 &";
     system(command.c_str());
@@ -245,6 +242,7 @@ bool Scanner::print(Type type) const {
 void Scanner::transitiveReduction() {
     // Warshall's Algorithm for transitive closure
     auto R1 = adjacencyMatrix;
+    auto backup = adjacencyMatrix;
     for (size_t k = 0; k < files.size(); ++k) {
         for (size_t i = 0; i < files.size(); ++i) {
             for (size_t j = 0; j < files.size(); ++j) {
@@ -253,14 +251,64 @@ void Scanner::transitiveReduction() {
         }
         std::swap(adjacencyMatrix, R1);
     }
-    // Hsu's Algorithm for reflexive and transitive reduction
-    for (size_t i = 0; i < files.size(); ++i)
-        adjacencyMatrix[i][i] = false;
 
-    for (size_t j = 0; j < files.size(); ++j)
+    // Hsu's Algorithm for reflexive and transitive reduction
+    for (size_t i = 0; i < files.size(); ++i) adjacencyMatrix[i][i] = false;
+
+    for (size_t j = 0; j < files.size(); ++j) {
         for (size_t i = 0; i < files.size(); ++i)
             if (adjacencyMatrix[i][j])
                 for (size_t k = 0; k < files.size(); ++k)
                     if (adjacencyMatrix[j][k])
                         adjacencyMatrix[i][k] = false;
+    }
+
+    for (size_t i = 0; i < files.size(); ++i) {
+        for (size_t j = 0; j < files.size(); ++j) {
+            if (!adjacencyMatrix[i][j] && backup[i][j]) {
+                removeInclude(files[i], files[j]);
+            }
+        }
+    }
+}
+
+void Scanner::removeInclude(const File &file, const File &include) const {
+    std::ifstream iFile(file.absPath);
+    path out = file.absPath.parent_path() / (file.absPath.filename().string() + ".new");
+    std::ofstream oFile(out);
+
+    if (!iFile.good() || !oFile.good()) {
+        return;
+    }
+
+    std::string remove = "#include";
+    if (include.type == Type::L) {
+        remove = remove + "<" + include.absPath.filename().string() + ">";
+    } else {
+        remove = remove + "\"" + relative(include.absPath, file.absPath.parent_path()).string() + "\"";
+    }
+
+    bool found = false;
+
+    std::string line;
+    std::string backup;
+    while (getline(iFile, line)) {
+        backup = line;
+        line.erase(std::remove_if(line.begin(), line.end(), isspace), line.end());
+
+        if (line.size() < remove.size() || line.substr(0, remove.size()) != remove) {
+            oFile << backup << std::endl;
+            continue;
+        }
+
+        found = true;
+    }
+
+    if (!found) throw std::runtime_error("Not found: " + file.absPath.string() + " -> " + remove);
+
+    oFile.close();
+    iFile.close();
+
+    rename(file.absPath, file.absPath.string()+".backup");
+    rename(out, file.absPath);
 }

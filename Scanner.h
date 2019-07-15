@@ -51,6 +51,8 @@ class Scanner {
 
     bool print(Type type) const;
 
+    void removeInclude(const File &file, const File &include) const;
+
 public:
     Scanner(bool u, bool h, bool c, bool l, bool r, const path &path);
 
