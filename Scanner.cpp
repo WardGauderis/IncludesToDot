@@ -270,7 +270,7 @@ void Scanner::transitiveReduction(bool apply) {
     for (size_t i = 0; i < files.size(); ++i) {
         for (size_t j = 0; j < files.size(); ++j) {
             if (!adjacencyMatrix[i][j] && backup[i][j]) {
-                ++i;
+                ++removed;
                 removeInclude(files[i], files[j]);
             }
         }
