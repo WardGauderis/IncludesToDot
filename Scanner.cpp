@@ -265,8 +265,6 @@ void Scanner::transitiveReduction(bool apply) {
 
     if(!apply) return;
 
-    create_directory("backup");
-
     for (size_t i = 0; i < files.size(); ++i) {
         for (size_t j = 0; j < files.size(); ++j) {
             if (!adjacencyMatrix[i][j] && backup[i][j]) {
@@ -313,6 +311,7 @@ void Scanner::removeInclude(const File &file, const File &include) const {
     oFile.close();
     iFile.close();
 
+    create_directories(("backup" / relative(file.absPath, workingDir).parent_path()));
     rename(file.absPath, "backup"/relative(file.absPath, workingDir));
     rename(out, file.absPath);
 }
