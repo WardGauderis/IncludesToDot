@@ -52,7 +52,7 @@ Scanner::Scanner(bool u, bool h, bool c, bool l, bool r, const path &path) :
 void Scanner::scanFolder(const path &path) {
     for (const auto &entry: directory_iterator(path)) {
         if (entry.is_directory()) {
-            if (entry.path().filename() == "cmake-build-debug" || entry.path().filename() == "CMakeFiles") continue;
+            if (entry.path().filename() == "cmake-build-debug" || entry.path().filename() == "CMakeFiles" || entry.path().filename() == "backup") continue;
             scanFolder(entry.path());
         } else {
             scanFile(entry.path());
