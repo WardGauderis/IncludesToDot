@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
         (arguments.size() > 0 && (arguments[0] == "--help"))) {
         std::cout << "IncludesToDot\n"
                      "By Ward Gauderis\n"
-                     "Visualize the include structure of your C/C++ project on Linux using Graphviz DOT language.\n"
+                     "Visualize and optimize the include structure of your C/C++ project on Linux using Graphviz DOT language.\n"
                      "Dependencies: the Graphviz package\n\n"
                      "Usage:        itd <path (optional)> -<options (optional)>\n"
                      "              if path is a file, only included files will be scanned recursively (without 'r')\n"
