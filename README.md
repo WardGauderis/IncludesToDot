@@ -10,12 +10,10 @@ Usage: itd <path (optional)> -<options (optional)>
 - if path is a file, only included files will be scanned recursively (without 'r')
 - if path is a folder all files in the underlying folders will be scanned together with their includes recursively (without 'r')
 - r - do not scan files recursively
-
 - h - hide headers and their library/missing dependencies
 - c - hide implementation files and their library/missing dependencies
 - l - hide library dependencies
 - u - hide unknown/missing dependencies
-
 - o - show the optimized graph of your project's includes (using transitive reduction)
 - O - same as 'o' but applies these changes to your files (backups are made in the backup folder)
 
