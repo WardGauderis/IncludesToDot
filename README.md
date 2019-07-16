@@ -2,7 +2,7 @@
 
 By Ward Gauderis
 
-Visualize the include structure of your C/C++ project on Linux using Graphviz DOT language.
+Visualize and optimize the include structure of your C/C++ project on Linux using Graphviz DOT language.
 
 Dependencies: the Graphviz package
 
