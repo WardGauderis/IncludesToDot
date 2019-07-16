@@ -239,7 +239,7 @@ bool Scanner::print(Type type) const {
     return true;
 }
 
-void Scanner::transitiveReduction() {
+void Scanner::transitiveReduction(bool apply) {
     // Warshall's Algorithm for transitive closure
     auto R1 = adjacencyMatrix;
     auto backup = adjacencyMatrix;
@@ -262,6 +262,10 @@ void Scanner::transitiveReduction() {
                     if (adjacencyMatrix[j][k])
                         adjacencyMatrix[i][k] = false;
     }
+
+    if(!apply) return;
+
+    create_directory("backup");
 
     for (size_t i = 0; i < files.size(); ++i) {
         for (size_t j = 0; j < files.size(); ++j) {
@@ -309,6 +313,6 @@ void Scanner::removeInclude(const File &file, const File &include) const {
     oFile.close();
     iFile.close();
 
-    rename(file.absPath, file.absPath.string()+".backup");
+    rename(file.absPath, "backup"/relative(file.absPath, workingDir));
     rename(out, file.absPath);
 }

@@ -7,13 +7,12 @@
 // @description :
 //============================================================================
 #include "Scanner.h"
-
 #include <iostream>
 
 int main(int argc, char *argv[]) {
     std::vector<std::string> arguments(argv + 1, argv + argc);
 
-    bool u = true, h = true, c = true, l = true, r = true, o = false;
+    bool u = true, h = true, c = true, l = true, r = true, o = false, O = false;
     path p = current_path();
 
     int path = 0, options = 0;
@@ -27,6 +26,7 @@ int main(int argc, char *argv[]) {
             r = arg.find('r') == std::string::npos;
 
             o = arg.find('o') != std::string::npos;
+            O = arg.find('O') != std::string::npos;
             ++options;
         } else {
             if (arg[0] == '/') {
@@ -50,6 +50,7 @@ int main(int argc, char *argv[]) {
                      "              l - hide library dependencies\n"
                      "              u - hide unknown/missing dependencies\n"
                      "              o - show the optimized graph of your project's includes (using transitive reduction)\n"
+                     "              O - same as 'o' but applies these changes to your files (backup's are made in the backup folder)\n"
                      "Examples:     itd main.cpp -olu\n"
                      "              itd myProject/src/ -lc\n"
                      "Graph color:  red - header file/include\n"
@@ -61,8 +62,8 @@ int main(int argc, char *argv[]) {
 
     Scanner scanner(u, h, c, l, r, p);
 
-    if (o) {
-        scanner.transitiveReduction();
+    if (o || O) {
+        scanner.transitiveReduction(O);
     }
 
     scanner.print();

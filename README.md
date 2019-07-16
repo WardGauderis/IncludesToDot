@@ -12,6 +12,7 @@ Usage: itd <path (optional)> -<options (optional)>
 - l - hide library dependencies
 - u - hide unknown/missing dependencies
 - o - show the optimized graph of your project's includes (using transitive reduction)
+- O - same as 'o' but applies these changes to your files (backup's are made in the backup folder)
 
 Examples:   
 - itd main.cpp -olu

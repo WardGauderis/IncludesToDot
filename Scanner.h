@@ -58,7 +58,7 @@ public:
 
     void print() const;
 
-    void transitiveReduction();
+    void transitiveReduction(bool apply);
 };
 
 #endif //TODOT_SCANNER_H
