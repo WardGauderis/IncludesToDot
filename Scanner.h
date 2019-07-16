@@ -56,7 +56,7 @@ class Scanner {
 public:
     Scanner(bool u, bool h, bool c, bool l, bool r, const path &path);
 
-    void print() const;
+    void print(const std::string& filename) const;
 
     void transitiveReduction(bool apply);
 };

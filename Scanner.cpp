@@ -52,7 +52,9 @@ Scanner::Scanner(bool u, bool h, bool c, bool l, bool r, const path &path) :
 void Scanner::scanFolder(const path &path) {
     for (const auto &entry: directory_iterator(path)) {
         if (entry.is_directory()) {
-            if (entry.path().filename() == "cmake-build-debug" || entry.path().filename() == "CMakeFiles" || entry.path().filename() == "backup") continue;
+            if (entry.path().filename() == "cmake-build-debug" || entry.path().filename() == "CMakeFiles" ||
+                entry.path().filename() == "backup")
+                continue;
             scanFolder(entry.path());
         } else {
             scanFile(entry.path());
@@ -155,7 +157,7 @@ void Scanner::scanFile(const path &path) {
     }
 }
 
-void Scanner::print() const {
+void Scanner::print(const std::string &filename) const {
     std::vector<bool> toPrint(files.size(), false);
     for (size_t i = 0; i < files.size(); ++i) {
         toPrint[i] = print(files[i].type);
@@ -176,8 +178,8 @@ void Scanner::print() const {
         }
     }
 
-    std::string dotName = temp_directory_path() / "includes.dot";
-    std::string pngName = temp_directory_path() / "includes.png";
+    std::string dotName = temp_directory_path() / (filename + ".dot");
+    std::string pngName = temp_directory_path() / (filename + ".png");
     std::ofstream oFile(dotName);
     if (!oFile.good()) return;
 
@@ -263,7 +265,7 @@ void Scanner::transitiveReduction(bool apply) {
                         adjacencyMatrix[i][k] = false;
     }
 
-    if(!apply) return;
+    if (!apply) return;
 
     int removed = 0;
 
@@ -318,6 +320,6 @@ void Scanner::removeInclude(const File &file, const File &include) const {
     iFile.close();
 
     create_directories(("backup" / relative(file.absPath, workingDir).parent_path()));
-    rename(file.absPath, "backup"/relative(file.absPath, workingDir));
+    rename(file.absPath, "backup" / relative(file.absPath, workingDir));
     rename(out, file.absPath);
 }
