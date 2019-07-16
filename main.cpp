@@ -71,6 +71,10 @@ int main(int argc, char *argv[]) {
 
     scanner.print((o || O) ? "optimized" : "non-optimized");
 
+    if (!(o || O)) {
+        scanner.transitiveReduction(O);
+    }
+
     return 0;
 }
 

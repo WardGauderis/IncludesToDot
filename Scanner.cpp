@@ -265,21 +265,19 @@ void Scanner::transitiveReduction(bool apply) {
                         adjacencyMatrix[i][k] = false;
     }
 
-    if (!apply) return;
-
     int removed = 0;
 
     for (size_t i = 0; i < files.size(); ++i) {
         for (size_t j = 0; j < files.size(); ++j) {
             if (!adjacencyMatrix[i][j] && backup[i][j]) {
                 ++removed;
-                removeInclude(files[i], files[j]);
+                if (apply) removeInclude(files[i], files[j]);
             }
         }
     }
 
-    std::cout << "Removed " << removed << " includes.\n";
-
+    if (apply) std::cout << "Optimized " << removed << " includes.\n";
+    else std::cout << removed << " possible optimizations.\n";
 }
 
 void Scanner::removeInclude(const File &file, const File &include) const {
